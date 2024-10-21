@@ -5,6 +5,8 @@
  */
 package com.irrigation.mongofetchinsert.Service;
 
+import com.irrigation.mongofetchinsert.Configuration.DataSourceConfig;
+import com.irrigation.mongofetchinsert.Configuration.MongoConfig;
 import com.irrigation.mongofetchinsert.Enum.ExtracterType;
 import java.net.MalformedURLException;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -18,35 +20,23 @@ import org.springframework.stereotype.Service;
 @EnableAsync
 public  class DocumentFetcher {
     
-    
-        
-    private static final String DATA_AKT_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/001PravniAktZneni.json.gz";
-    private static final String DATA_TERMIN_DEFINICE_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/031CzechVOCDefiniceTerminu.jsonld.gz";
-    private static final String DATA_TERMIN_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/032CzechVOCTermin.jsonld.gz";
-    private static final String DATA_TERMIN_VAZBA_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/030CzechVOCKoncept.jsonld.gz";
-    private static final String DATA_FRAGMENT_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/003PravniAktZneniFragment.jsonld.gz";
-    
-    private static final String SOURCE_DATA_COLLECTION_NAME = "PravniAktZneni";
-    private static final String SOURCE_TERMINY_COLLECTION_NAME = "TerminyBase";
-    private static final String SOURCE_TERMINY_POPIS_COLLECTION_NAME = "TerminyPopis";
-    private static final String SOURCE_TERMINY_VAZBA_COLLECTION_NAME = "TerminyVazba";
-    private static final String SOURCE_FRAGMENT_COLLECTION_NAME = "Fragment";
-
-    
-    private static final String SOURCE_TERMINY_PROCESSED_COLLECTION_NAME = "Terminy";
-    private static final String TARGET_COLLECTION_NAME = "PravniAktZneniOdkazyQuick";
+     
+   private final MongoConfig mongoConfig;
+   private final DataSourceConfig dataSourceConfig;
     
     private final JsonExtracterUtil jsonExtracter;
-    public DocumentFetcher(JsonExtracterUtil jsonExtracter){
+    public DocumentFetcher(JsonExtracterUtil jsonExtracter,MongoConfig mongoConfig, DataSourceConfig dataSourceConfig){
         this.jsonExtracter = jsonExtracter;
+        this.mongoConfig= mongoConfig;
+        this.dataSourceConfig = dataSourceConfig;
     }
     
     public  void fetchDocuments() throws MalformedURLException{
           
-        jsonExtracter.extractFromAddressToMongo(DATA_AKT_URL,SOURCE_DATA_COLLECTION_NAME,ExtracterType.PRAVNI_AKT);
-        jsonExtracter.extractFromAddressToMongo(DATA_TERMIN_DEFINICE_URL, SOURCE_TERMINY_POPIS_COLLECTION_NAME,ExtracterType.TERMIN_DEFINICE);
-        jsonExtracter.extractFromAddressToMongo(DATA_TERMIN_URL, SOURCE_TERMINY_COLLECTION_NAME,ExtracterType.TERMIN_NAZEV);
-        jsonExtracter.extractFromAddressToMongo(DATA_TERMIN_VAZBA_URL,  SOURCE_TERMINY_VAZBA_COLLECTION_NAME ,ExtracterType.TERMIN_VAZBA);
+        jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_AKTY_ZNENI,mongoConfig.MONGO_COLLECTION_AKTY_ZNENI,ExtracterType.PRAVNI_AKT);
+        jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_POPIS, mongoConfig.MONGO_COLLECTION_TERMINY_POPIS,ExtracterType.TERMIN_DEFINICE);
+        jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_BASE, mongoConfig.MONGO_COLLECTION_TERMINY_BASE,ExtracterType.TERMIN_NAZEV);
+        jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_VAZBA,  mongoConfig.MONGO_COLLECTION_TERMINY_VAZBA ,ExtracterType.TERMIN_VAZBA);
         //jsonExtracter.extractFromAddressToMongo(DATA_FRAGMENT_URL,  SOURCE_FRAGMENT_COLLECTION_NAME ,ExtracterType.NONE);
     }
     

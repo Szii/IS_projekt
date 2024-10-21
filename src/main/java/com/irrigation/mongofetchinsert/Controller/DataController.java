@@ -37,7 +37,7 @@ public class DataController {
     public DataController(MongoUtils mongoUtils,ControllerHelperService helperService,MongoConfig mongoConfig, ChunkingService chunkingService){
         this.mongoUtils = mongoUtils;
         this.helperService = helperService;
-        collection = mongoConfig.collection;
+        collection = mongoConfig.MONGO_COLLECTION_AKTY_FINAL;
     }
     
    

@@ -8,6 +8,8 @@ package com.irrigation.mongofetchinsert.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.irrigation.mongofetchinsert.Configuration.DataSourceConfig;
+import com.irrigation.mongofetchinsert.Configuration.MongoConfig;
 import com.irrigation.mongofetchinsert.Model.Segments;
 import com.irrigation.mongofetchinsert.Enum.VztazenyTermin;
 import com.mongodb.client.*;
@@ -30,10 +32,6 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
-import org.springframework.context.event.EventListener;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-
-
 
 
 @Service
@@ -41,64 +39,49 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 public class MongoSetupService {
     private static final Logger logger = LoggerFactory.getLogger(MongoSetupService.class);
     
-    private static final String ZNENI_PRAVNI_AKT = "PravniAktZneni";
-    private static final String SOURCE_TERMINY_COLLECTION_NAME = "TerminyBase";
-    private static final String SOURCE_TERMINY_POPIS_COLLECTION_NAME = "TerminyPopis";
-    private static final String SOURCE_TERMINY_VAZBA_COLLECTION_NAME = "TerminyVazba";
-    private static final String SOURCE_TERMINY_PROCESSED_COLLECTION_NAME = "Terminy";
-    private static final String ZNENI = "PravniAktZneniOdkazyQuick";
-
-
-    // Concurrency settings
     private static final int THREAD_POOL_SIZE = 50;
 
-    // HTTP client
     private static final OkHttpClient HTTP_CLIENT = createUnsafeOkHttpClient();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    // Date format
     private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
 
-    // Caches for IDs
     private static final ConcurrentMap<Integer, String> PDF_ID_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentMap<Integer, String> DOCX_ID_CACHE = new ConcurrentHashMap<>();
 
-
-    // Constants for retry logic
     private static final int MAX_FETCH_ATTEMPTS = 3;
-    private static final int INITIAL_DELAY_MILLIS = 500; // 2 seconds
+    private static final int INITIAL_DELAY_MILLIS = 500;
     
   
-
-   //     String collectionName = "PravniAktZneni"; // MongoDB collection name
-    
     private final MongoUtils mongoUtils;
     private final StringParser stringParser;
     private final SegmentsExtractionUtil segmentsExtractionUtil;
     private final DocumentFetcher documentFetcher;
-    
-    public MongoSetupService(MongoUtils mongoUtils, StringParser stringParser,SegmentsExtractionUtil segmentsExtractionUtil,DocumentFetcher documentFetcher){
+    private final MongoConfig mongoConfig;
+
+    public MongoSetupService(MongoUtils mongoUtils, StringParser stringParser, SegmentsExtractionUtil segmentsExtractionUtil, DocumentFetcher documentFetcher, MongoConfig mongoConfig) {
         this.mongoUtils = mongoUtils;
         this.stringParser = stringParser;
         this.segmentsExtractionUtil = segmentsExtractionUtil;
-        this.documentFetcher = documentFetcher;
+        this.documentFetcher = documentFetcher ; 
+        this.mongoConfig = mongoConfig;
     }
-
+    
     public void setupMongo() throws MalformedURLException {
         
             mongoUtils.setProcessing(true);
-       documentFetcher.fetchDocuments();
+            documentFetcher.fetchDocuments();
         
-            mongoUtils.createCollection(SOURCE_TERMINY_PROCESSED_COLLECTION_NAME);
-            mongoUtils.createCollection(ZNENI);
+            mongoUtils.createCollection(mongoConfig.MONGO_COLLECTION_TERMINY_FINAL);
+            mongoUtils.createCollection(mongoConfig.MONGO_COLLECTION_AKTY_FINAL);
             
-            MongoCollection<Document> terminyBaseCollection = mongoUtils.getMongoCollection(SOURCE_TERMINY_COLLECTION_NAME);
-            MongoCollection<Document> terminyPopisCollection = mongoUtils.getMongoCollection(SOURCE_TERMINY_POPIS_COLLECTION_NAME);
-            MongoCollection<Document> terminyVazbaCollection = mongoUtils.getMongoCollection(SOURCE_TERMINY_VAZBA_COLLECTION_NAME);
-            MongoCollection<Document> terminyProcessedCollection = mongoUtils.getMongoCollection(SOURCE_TERMINY_PROCESSED_COLLECTION_NAME);
+            MongoCollection<Document> terminyBaseCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_BASE);
+            MongoCollection<Document> terminyPopisCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_POPIS);
+            MongoCollection<Document> terminyVazbaCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_VAZBA);
+            MongoCollection<Document> terminyProcessedCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_FINAL);
             
-            MongoCollection<Document> zneniCollection = mongoUtils.getMongoCollection(ZNENI);
-            MongoCollection<Document> zneniPravniAktCollection = mongoUtils.getMongoCollection(ZNENI_PRAVNI_AKT);
+            MongoCollection<Document> zneniCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_AKTY_FINAL);
+            MongoCollection<Document> zneniPravniAktCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_AKTY_ZNENI);
     
         
             
@@ -108,9 +91,6 @@ public class MongoSetupService {
         
     }
 
-    
-
-    
     
     private void processTerminDocuments(MongoCollection<Document> targetCollection, 
             MongoCollection<Document> terminBaseCollection,MongoCollection<Document> terminVazbaCollection,
