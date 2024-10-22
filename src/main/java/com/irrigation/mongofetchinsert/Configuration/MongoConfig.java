@@ -24,7 +24,7 @@ public class MongoConfig {
     public String DATABASE;
     @Value("${mongo.collectin.pravniAktZneni}")
     public String MONGO_COLLECTION_AKTY_ZNENI
-;    @Value("${mongo.collection.pravniAktFinal}")
+;   @Value("${mongo.collection.pravniAktFinal}")
     public String MONGO_COLLECTION_AKTY_FINAL;
     @Value("${mongo.collection.terminy.base}")
     public String MONGO_COLLECTION_TERMINY_BASE;

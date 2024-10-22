@@ -94,7 +94,7 @@ public class DataController {
     }
     
     @GetMapping("/getByLink")
-    public ResponseEntity<JsonNode> getOneByLink(@RequestHeader("Authorization") String token, @RequestParam("link")String link) {
+    public ResponseEntity<JsonNode> getOneByLink(@RequestHeader("Authorization") String token, @RequestParam("url")String link) {
             if(mongoUtils.isProcessing()){
                return new ResponseEntity<>(HttpStatus.PROCESSING); 
             }
