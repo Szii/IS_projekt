@@ -30,7 +30,10 @@ public class MongoConnector {
     
     @Bean
     public MongoDatabase getMongoDatabase(){
-            MongoClient mongoClient = MongoClients.create(mongoConfig.ADDRESS);
-            return mongoClient.getDatabase(mongoConfig.DATABASE);
+        MongoClient mongoClient = MongoClients.create(mongoConfig.ADDRESS);
+        while(mongoClient == null){
+            mongoClient = MongoClients.create(mongoConfig.ADDRESS);
+        }
+        return mongoClient.getDatabase(mongoConfig.DATABASE);
     }
 }

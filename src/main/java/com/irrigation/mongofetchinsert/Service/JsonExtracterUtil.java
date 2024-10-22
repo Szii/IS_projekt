@@ -20,6 +20,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.InsertOneResult;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -77,7 +78,8 @@ public class JsonExtracterUtil {
             // Open a connection to the URL and get the InputStream
             URL url = new URL(sourceURL);
             try (InputStream urlInputStream = url.openStream();
-                 GZIPInputStream gzipInputStream = new GZIPInputStream(urlInputStream);
+                 BufferedInputStream bufferedInputStream = new BufferedInputStream(urlInputStream, 8192 * 100); 
+                 GZIPInputStream gzipInputStream = new GZIPInputStream(bufferedInputStream);
                  JsonParser jsonParser = jsonFactory.createParser(gzipInputStream)) {
 
                 // Start parsing the JSON content
@@ -91,9 +93,11 @@ public class JsonExtracterUtil {
                 }
                 
 
+                System.out.println("Source size" + mongoUtils.getCollectionSize(collectionName));
                 System.out.println("Import completed successfully.");
 
             } catch (IOException e) {
+                System.out.println("Source size" + mongoUtils.getCollectionSize(collectionName));
                 System.err.println("IOException occurred: " + e.getMessage());
                 e.printStackTrace();
             } catch (MongoException me) {
@@ -152,7 +156,7 @@ public class JsonExtracterUtil {
             if(zneniDatumUcinostiOdNode != null){
                 LocalDate zneniDatumUcinostiOd = LocalDate.parse(zneniDatumUcinostiOdNode.asText(),formatter);   
                      if(zneniDatumUcinostiOd.isAfter(currentDate)){
-                             System.out.println("Skipped document due to not null 'znění-datum-účinnosti-do' field. " + zneniDatumUcinostiDoNode);
+                           //  System.out.println("Skipped document due to not null 'znění-datum-účinnosti-do' field. " + zneniDatumUcinostiDoNode);
                              return;
                          }
             }
@@ -160,7 +164,7 @@ public class JsonExtracterUtil {
             if(zneniDatumUcinostiDoNode != null && !zneniDatumUcinostiDoNode.isNull()){
                           LocalDate zneniDatumUcinostiDo = LocalDate.parse(zneniDatumUcinostiDoNode.asText(),formatter);   
                          if(zneniDatumUcinostiDo.isBefore(currentDate)){
-                             System.out.println("Skipped document due to not null 'znění-datum-účinnosti-do' field. " + zneniDatumUcinostiDoNode);
+                            // System.out.println("Skipped document due to not null 'znění-datum-účinnosti-do' field. " + zneniDatumUcinostiDoNode);
                              return;
                          }
 
@@ -169,18 +173,10 @@ public class JsonExtracterUtil {
             if(metadataDatumZruseniNode != null && !metadataDatumZruseniNode.isNull()){
                         LocalDate metadataDatumZruseni = LocalDate.parse(metadataDatumZruseniNode.asText(),formatter); 
                           if(metadataDatumZruseni.isBefore(currentDate)){
-                               System.out.println("Skipped document due to not null 'metadata-datum-zrušení' field." + metadataDatumZruseniNode);
+                            //   System.out.println("Skipped document due to not null 'metadata-datum-zrušení' field." + metadataDatumZruseniNode);
                                 return;
                           }
-                     }   
-            
-            
-            
-            
-          
-
-                   
-        
+                     }                  
         }
        if(extracterType == ExtracterType.TERMIN_DEFINICE){
            createIndexes(collection, "definice-termínu-id");
@@ -240,7 +236,7 @@ public class JsonExtracterUtil {
         try {
             // Create an ascending index on "znění-base-id"
             collection.createIndex(Indexes.ascending(indexName));
-            logger.info("Created index on 'znění-base-id'.");
+           // logger.info("Created index on 'znění-base-id'.");
         } catch (Exception e) {
             logger.error("Error creating indexes: {}", e.getMessage());
             throw new RuntimeException("Failed to create indexes.", e);

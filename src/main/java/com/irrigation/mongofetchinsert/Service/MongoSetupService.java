@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.irrigation.mongofetchinsert.Configuration.DataSourceConfig;
 import com.irrigation.mongofetchinsert.Configuration.MongoConfig;
+import com.irrigation.mongofetchinsert.Configuration.ProcessConfig;
 import com.irrigation.mongofetchinsert.Model.Segments;
 import com.irrigation.mongofetchinsert.Enum.VztazenyTermin;
 import com.mongodb.client.*;
@@ -39,8 +40,6 @@ import org.springframework.stereotype.Service;
 public class MongoSetupService {
     private static final Logger logger = LoggerFactory.getLogger(MongoSetupService.class);
     
-    private static final int THREAD_POOL_SIZE = 50;
-
     private static final OkHttpClient HTTP_CLIENT = createUnsafeOkHttpClient();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -58,13 +57,15 @@ public class MongoSetupService {
     private final SegmentsExtractionUtil segmentsExtractionUtil;
     private final DocumentFetcher documentFetcher;
     private final MongoConfig mongoConfig;
+    private final ProcessConfig processingConfig;
 
-    public MongoSetupService(MongoUtils mongoUtils, StringParser stringParser, SegmentsExtractionUtil segmentsExtractionUtil, DocumentFetcher documentFetcher, MongoConfig mongoConfig) {
+    public MongoSetupService(MongoUtils mongoUtils, StringParser stringParser, SegmentsExtractionUtil segmentsExtractionUtil, DocumentFetcher documentFetcher, MongoConfig mongoConfig, ProcessConfig processingConfig) {
         this.mongoUtils = mongoUtils;
         this.stringParser = stringParser;
         this.segmentsExtractionUtil = segmentsExtractionUtil;
         this.documentFetcher = documentFetcher ; 
         this.mongoConfig = mongoConfig;
+        this.processingConfig = processingConfig;
     }
     
     public void setupMongo() throws MalformedURLException {
@@ -75,9 +76,10 @@ public class MongoSetupService {
             mongoUtils.createCollection(mongoConfig.MONGO_COLLECTION_TERMINY_FINAL);
             mongoUtils.createCollection(mongoConfig.MONGO_COLLECTION_AKTY_FINAL);
             
-            MongoCollection<Document> terminyBaseCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_BASE);
-            MongoCollection<Document> terminyPopisCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_POPIS);
-            MongoCollection<Document> terminyVazbaCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_VAZBA);
+                     
+         //   MongoCollection<Document> terminyBaseCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_BASE);
+          //  MongoCollection<Document> terminyPopisCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_POPIS);
+         //   MongoCollection<Document> terminyVazbaCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_VAZBA);
             MongoCollection<Document> terminyProcessedCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_TERMINY_FINAL);
             
             MongoCollection<Document> zneniCollection = mongoUtils.getMongoCollection(mongoConfig.MONGO_COLLECTION_AKTY_FINAL);
@@ -85,7 +87,7 @@ public class MongoSetupService {
     
         
             
-            processTerminDocuments(terminyProcessedCollection,terminyBaseCollection,terminyVazbaCollection,terminyPopisCollection); 
+         //  processTerminDocuments(terminyProcessedCollection,terminyBaseCollection,terminyVazbaCollection,terminyPopisCollection); 
             processZneniDocuments(zneniCollection,zneniPravniAktCollection,terminyProcessedCollection); 
             mongoUtils.setProcessing(false);
         
@@ -95,7 +97,7 @@ public class MongoSetupService {
     private void processTerminDocuments(MongoCollection<Document> targetCollection, 
             MongoCollection<Document> terminBaseCollection,MongoCollection<Document> terminVazbaCollection,
             MongoCollection<Document> terminDefiniceCollection){
-     ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+     ExecutorService executorService = Executors.newFixedThreadPool(processingConfig.THREAD_NUMBER);
 
         try{
 
@@ -124,7 +126,7 @@ public class MongoSetupService {
     
     private void processZneniDocuments(MongoCollection<Document> targetCollection, 
             MongoCollection<Document> pravniAktCollection, MongoCollection<Document> terminyCollection){
-        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        ExecutorService executorService = Executors.newFixedThreadPool(processingConfig.THREAD_NUMBER);
 
         try{
              List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -174,8 +176,8 @@ public class MongoSetupService {
                   podTypAktu = stringParser.extractAfterLastSlashAsString(typDoc.getString("iri"));
             }
             
-            List<VztazenyTermin> vztazeneTerminy = getListOfTermsForDocument(doc,terminyCollection,"znění-dokument-id");
-      
+        //    List<VztazenyTermin> vztazeneTerminy = getListOfTermsForDocument(doc,terminyCollection,"znění-dokument-id");
+           List<VztazenyTermin> vztazeneTerminy = null;
             /*
             if (zneniDokumentId == null || zneniBaseId == null || aktNazevVyhlasen == null || zneniDatumUcinnostiOdStr == null) {
                 logger.warn("Skipping document due to missing fields: {}", doc.toJson());

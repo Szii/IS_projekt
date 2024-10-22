@@ -1,0 +1,43 @@
+version: '3'
+services:
+  # MongoDB Service
+  mongo:
+    image: mongo:latest
+    container_name: mongo-container
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: DataDB
+    volumes:
+      - ./mongo-data:/data/db # Persistent volume for MongoDB data storage
+    healthcheck:
+        test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+        interval: 10s
+        timeout: 10s
+        retries: 10
+        start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+
+  # Java Spring Boot Application Service
+  java-app:
+    build:
+      context: ./ # Path to your Java project (Dockerfile for the Java app should be in this directory)
+    container_name: java-app-container
+    ports:
+      - "9090:9090" # Expose port 9090 for the Spring Boot app
+    environment:
+      MONGO_ADDRESS: mongodb://mongo-container:27017
+    depends_on:
+      mongo:
+        condition: service_healthy # Ensure the Java app only starts when MongoDB is healthy
+    links:
+      - mongo
+  deploy:
+    resources:
+      limits:
+        memory: 256M  # Reduce Java container to 256MB of memory
+        cpus: "0.5"   # Limit Java container to 50% of one CPU core
+

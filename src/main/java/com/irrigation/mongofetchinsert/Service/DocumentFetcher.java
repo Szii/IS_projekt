@@ -34,9 +34,9 @@ public  class DocumentFetcher {
     public  void fetchDocuments() throws MalformedURLException{
           
         jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_AKTY_ZNENI,mongoConfig.MONGO_COLLECTION_AKTY_ZNENI,ExtracterType.PRAVNI_AKT);
-        jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_POPIS, mongoConfig.MONGO_COLLECTION_TERMINY_POPIS,ExtracterType.TERMIN_DEFINICE);
-        jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_BASE, mongoConfig.MONGO_COLLECTION_TERMINY_BASE,ExtracterType.TERMIN_NAZEV);
-        jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_VAZBA,  mongoConfig.MONGO_COLLECTION_TERMINY_VAZBA ,ExtracterType.TERMIN_VAZBA);
+       // jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_POPIS, mongoConfig.MONGO_COLLECTION_TERMINY_POPIS,ExtracterType.TERMIN_DEFINICE);
+       // jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_BASE, mongoConfig.MONGO_COLLECTION_TERMINY_BASE,ExtracterType.TERMIN_NAZEV);
+       // jsonExtracter.extractFromAddressToMongo(dataSourceConfig.URL_TERMINY_VAZBA,  mongoConfig.MONGO_COLLECTION_TERMINY_VAZBA ,ExtracterType.TERMIN_VAZBA);
         //jsonExtracter.extractFromAddressToMongo(DATA_FRAGMENT_URL,  SOURCE_FRAGMENT_COLLECTION_NAME ,ExtracterType.NONE);
     }
     

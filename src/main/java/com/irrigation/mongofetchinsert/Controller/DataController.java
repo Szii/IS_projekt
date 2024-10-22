@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.irrigation.mongofetchinsert.Configuration.MongoConfig;
 import com.irrigation.mongofetchinsert.Service.ChunkingService;
 import com.irrigation.mongofetchinsert.Service.MongoUtils;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.http.HttpStatus;
@@ -33,11 +32,13 @@ public class DataController {
     private final MongoUtils mongoUtils;
     private final ControllerHelperService helperService;
     private final String collection;
+    private final String sourceCollection;
     
     public DataController(MongoUtils mongoUtils,ControllerHelperService helperService,MongoConfig mongoConfig, ChunkingService chunkingService){
         this.mongoUtils = mongoUtils;
         this.helperService = helperService;
         collection = mongoConfig.MONGO_COLLECTION_AKTY_FINAL;
+        sourceCollection = mongoConfig.MONGO_COLLECTION_AKTY_ZNENI;
     }
     
    
@@ -62,6 +63,7 @@ public class DataController {
                }
                     JsonNode docs = mongoUtils.getAllWithinRange(collection,from,to);
                     System.out.println(docs.size());
+                    System.out.println("Source size" + mongoUtils.getCollectionSize(sourceCollection));
                      return new ResponseEntity<>(docs, HttpStatus.OK);
                 } catch (JsonProcessingException ex) {
                     Logger.getLogger(DataController.class.getName()).log(Level.SEVERE, null, ex);
